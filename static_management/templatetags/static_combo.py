@@ -1,9 +1,8 @@
 import os
 import time
-from static_management import static_management_settings
+from static_management import settings
 
 from django import template
-from django.conf import settings
 from static_management.lib import static_combine
 
 register = template.Library()
@@ -14,8 +13,8 @@ def static_combo_css(file_name, media=None):
     
     {% static_combo_css "css/main.css" %}"""
     # override the default if an override exists
-    if static_management_settings.STATIC_MANAGEMENT_CSS_LINK:
-        link_format = static_management_settings.STATIC_MANAGEMENT_CSS_LINK
+    if settings.STATIC_MANAGEMENT_CSS_LINK:
+        link_format = settings.STATIC_MANAGEMENT_CSS_LINK
     else:
         if media:
             link_format = '<link rel="stylesheet" type="text/css" href="%%s" media="%s">\n' % media
@@ -29,7 +28,7 @@ def static_combo_js(file_name):
     """combines files in settings
     
     {% static_combo_js "js/main.js" %}"""
-    script_format = static_management_settings.STATIC_MANAGEMENT_SCRIPT_SRC
+    script_format = settings.STATIC_MANAGEMENT_SCRIPT_SRC
     output = _group_file_names_and_output(file_name, script_format, 'js')
     return output
 
@@ -51,7 +50,7 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key):
                 if os.path.exists(file_path):
                     # need to append a cachebust as per static_asset
                     to_output = output_format % os.path.join(settings.MEDIA_URL, file_name)
-                    if static_management_settings.STATIC_MANAGEMENT_CACHEBUST:
+                    if settings.STATIC_MANAGEMENT_CACHEBUST:
                         to_output += "?cachebust=%s" % time.time()
                     output += to_output
                 else:
@@ -60,7 +59,7 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key):
         try:
             parent_name = settings.STATIC_MANAGEMENT_VERSIONS[parent_name]
         except (AttributeError, KeyError):
-            raise template.TemplateSyntaxError, "%s not in static version settings" % parent_name
+            parent_name = parent_name
         # return "combined" files
-        output = output_format % "%s" % parent_name
+        output = output_format % "%s" % os.path.join(settings.MEDIA_URL, parent_name)
     return output
