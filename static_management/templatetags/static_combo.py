@@ -1,6 +1,8 @@
 import os
 import time
 
+import static_mananment_settings
+
 from django import template
 from django.conf import settings
 from static_management.lib import static_combine
@@ -13,9 +15,9 @@ def static_combo_css(file_name, media=None):
     
     {% static_combo_css "css/main.css" %}"""
     # override the default if an override exists
-    try:
-        link_format = settings.STATIC_MANAGEMENT_CSS_LINK
-    except AttributeError:
+    if static_mananment_settings.STATIC_MANAGEMENT_CSS_LINK:
+        link_format = static_management_settings.STATIC_MANAGEMENT_CSS_LINK
+    else
         if media:
             link_format = '<link rel="stylesheet" type="text/css" href="%%s" media="%s">\n' % media
         else:
@@ -28,11 +30,7 @@ def static_combo_js(file_name):
     """combines files in settings
     
     {% static_combo_js "js/main.js" %}"""
-    # override the default if an override exists
-    try:
-        script_format = settings.STATIC_MANAGEMENT_SCRIPT_SRC
-    except AttributeError:
-        script_format = '<script type="text/javascript" src="%s"></script>\n'
+    script_format = static_management_settings.STATIC_MANAGEMENT_SCRIPT_SRC
     output = _group_file_names_and_output(file_name, script_format, 'js')
     return output
 
@@ -54,7 +52,7 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key):
                 if os.path.exists(file_path):
                     # need to append a cachebust as per static_asset
                     to_output = output_format % os.path.join(settings.MEDIA_URL, file_name)
-                    if hasattr(settings, 'STATIC_MANAGEMENT_CACHEBUST') and settings.STATIC_MANAGEMENT_CACHEBUST:
+                    if static_mananment_settings.STATIC_MANAGEMENT_CACHEBUST:
                         to_output += "?cachebust=%s" % time.time()
                     output += to_output
                 else:

@@ -5,13 +5,10 @@ from optparse import OptionParser, make_option
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-
+from static_management import static_management_settings
 from static_management.lib import static_combine, get_version, write_versions
 
-try:
-    CSS_ASSET_PATTERN = re.compile(settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN)
-except AttributeError:
-    CSS_ASSET_PATTERN = re.compile('(?P<url>url(\([\'"]?(?P<filename>[^)]+\.[a-z]{3,4})(?P<fragment>#\w+)?[\'"]?\)))')
+CSS_ASSET_PATTERN = re.compile(static_management_settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN)
 
 try:
     from os.path import relpath
@@ -49,7 +46,8 @@ class Command(BaseCommand):
         # Do the get_versions for everything except the CSS
         self.get_versions()
         self.combine_css()
-        map(self.replace_css, self.css_files)
+        if static_management_settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN:
+            map(self.replace_css, self.css_files)
         # Do the CSS get_versions only after having replaced all references in the CSS.
         self.get_versions(css_only=True)
         self.write_versions()
@@ -58,21 +56,23 @@ class Command(BaseCommand):
         try:
             js_files = settings.STATIC_MANAGEMENT['js']
         except AttributeError:
-            print "Static JS files not provided. You must provide a set of files to combine."
-            raise SystemExit(1)
-        combine_files(js_files, self.options)
-        map(self.files_created.append, js_files)
+            print "Static JS files not provided"
+            js_files = None
+        if js_files:
+            combine_files(js_files, self.options)
+            map(self.files_created.append, js_files)
     
     def combine_css(self):
         try:
             css_files = settings.STATIC_MANAGEMENT['css']
         except AttributeError:
-            print "Static CSS files not provided. You must provide a set of files to combine."
-            raise SystemExit(1)
-        combine_files(css_files, self.options)
-        for file in css_files:
-            self.css_files.append(file)
-            self.files_created.append(file)
+            print "Static CSS files not provided."
+            css_files = None
+        if css_files:
+            combine_files(css_files, self.options)
+            for css_file in css_files:
+                self.css_files.append(css_file)
+                self.files_created.append(css_file)
 
     def replace_css(self, filename):
         tmp = os.tmpfile()
@@ -93,7 +93,6 @@ class Command(BaseCommand):
                     matches.append((grp['url'], asset_version))
                 except KeyError:
                     print "Failed to find %s in version map. Is it an absolute path?" % asset
-                    raise SystemExit(1)
             for old, new in matches:
                 line = line.replace(old, new)
             tmp.write(line)
@@ -104,7 +103,7 @@ class Command(BaseCommand):
         shutil.copyfileobj(tmp, css)
 
     def find_assets(self):
-        if settings.STATIC_MANAGEMENT_ASSET_PATHS:
+        if static_management_settings.STATIC_MANAGEMENT_ASSET_PATHS:
             exp = re.compile(settings.STATIC_MANAGEMENT_ASSET_PATTERN)
             for path, recurse in settings.STATIC_MANAGEMENT_ASSET_PATHS:
                 if recurse:
@@ -120,19 +119,20 @@ class Command(BaseCommand):
                                 yield relpath(full_filename, settings.MEDIA_ROOT)
 
     def get_versions(self, css_only=False):
-        hosts = settings.STATIC_MANAGEMENT_HOSTNAMES
-        i = 0
-        if css_only:
-            files = self.css_files
-        else:
-            files = self.files_created
-        for main_file in files:
-            if i > len(hosts) - 1:
-                i = 0
-            version = get_version(os.path.join(settings.MEDIA_ROOT, main_file), main_file, settings.STATIC_MANAGEMENT_VERSIONER)
-            self.versions[main_file] = version
-            self.abs_versions[main_file] = hosts[i] + version
-            i += 1
+        hosts = static_management_settings.STATIC_MANAGEMENT_HOSTNAMES
+        if hosts:
+            i = 0
+            if css_only:
+                files = self.css_files
+            else:
+                files = self.files_created
+            for main_file in files:
+                if i > len(hosts) - 1:
+                    i = 0
+                version = get_version(os.path.join(settings.MEDIA_ROOT, main_file), main_file, static_management_settings.STATIC_MANAGEMENT_VERSIONER)
+                self.versions[main_file] = version
+                self.abs_versions[main_file] = hosts[i] + version
+                i += 1
 
     def write_versions(self):
         for main_file in self.files_created:
