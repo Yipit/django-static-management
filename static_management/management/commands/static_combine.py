@@ -4,11 +4,10 @@ import re
 from optparse import OptionParser, make_option
 
 from django.core.management.base import BaseCommand
-from django.conf import settings
-from static_management import static_management_settings
+from static_management import settings
 from static_management.lib import static_combine, get_version, write_versions
 
-CSS_ASSET_PATTERN = re.compile(static_management_settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN)
+CSS_ASSET_PATTERN = re.compile(settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN)
 
 try:
     from os.path import relpath
@@ -46,7 +45,7 @@ class Command(BaseCommand):
         # Do the get_versions for everything except the CSS
         self.get_versions()
         self.combine_css()
-        if static_management_settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN:
+        if settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN:
             map(self.replace_css, self.css_files)
         # Do the CSS get_versions only after having replaced all references in the CSS.
         self.get_versions(css_only=True)
@@ -103,7 +102,7 @@ class Command(BaseCommand):
         shutil.copyfileobj(tmp, css)
 
     def find_assets(self):
-        if static_management_settings.STATIC_MANAGEMENT_ASSET_PATHS:
+        if settings.STATIC_MANAGEMENT_ASSET_PATHS:
             exp = re.compile(settings.STATIC_MANAGEMENT_ASSET_PATTERN)
             for path, recurse in settings.STATIC_MANAGEMENT_ASSET_PATHS:
                 if recurse:
@@ -119,7 +118,7 @@ class Command(BaseCommand):
                                 yield relpath(full_filename, settings.MEDIA_ROOT)
 
     def get_versions(self, css_only=False):
-        hosts = static_management_settings.STATIC_MANAGEMENT_HOSTNAMES
+        hosts = settings.STATIC_MANAGEMENT_HOSTNAMES
         if hosts:
             i = 0
             if css_only:
@@ -129,7 +128,7 @@ class Command(BaseCommand):
             for main_file in files:
                 if i > len(hosts) - 1:
                     i = 0
-                version = get_version(os.path.join(settings.MEDIA_ROOT, main_file), main_file, static_management_settings.STATIC_MANAGEMENT_VERSIONER)
+                version = get_version(os.path.join(settings.MEDIA_ROOT, main_file), main_file, settings.STATIC_MANAGEMENT_VERSIONER)
                 self.versions[main_file] = version
                 self.abs_versions[main_file] = hosts[i] + version
                 i += 1
