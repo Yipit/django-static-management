@@ -1,7 +1,6 @@
 import os
 import time
-
-import static_mananment_settings
+from static_management import static_management_settings
 
 from django import template
 from django.conf import settings
@@ -15,9 +14,9 @@ def static_combo_css(file_name, media=None):
     
     {% static_combo_css "css/main.css" %}"""
     # override the default if an override exists
-    if static_mananment_settings.STATIC_MANAGEMENT_CSS_LINK:
+    if static_management_settings.STATIC_MANAGEMENT_CSS_LINK:
         link_format = static_management_settings.STATIC_MANAGEMENT_CSS_LINK
-    else
+    else:
         if media:
             link_format = '<link rel="stylesheet" type="text/css" href="%%s" media="%s">\n' % media
         else:
@@ -52,7 +51,7 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key):
                 if os.path.exists(file_path):
                     # need to append a cachebust as per static_asset
                     to_output = output_format % os.path.join(settings.MEDIA_URL, file_name)
-                    if static_mananment_settings.STATIC_MANAGEMENT_CACHEBUST:
+                    if static_management_settings.STATIC_MANAGEMENT_CACHEBUST:
                         to_output += "?cachebust=%s" % time.time()
                     output += to_output
                 else:
