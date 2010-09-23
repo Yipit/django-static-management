@@ -14,8 +14,8 @@ class Command(BaseCommand):
     """static management commands for static_combine argument"""
     
     option_list = BaseCommand.option_list + (
-        make_option("-c", "--compress", action="store_true", dest="compress", default=False, help='Runs the compression script defined in "STATIC_MANAGEMENT_COMPRESS_CMD" on the final combined files'),
-        make_option("-s", "--output", action="store_true", dest="sync", default=False, help='Outputs the list of filenames with version info using the "STATIC_MANAGEMENT_VERSION_OUTPUT"'),
+        make_option("-c", "--no-compress", action="store_false", dest="compress", default=True, help='Runs the compression script defined in "STATIC_MANAGEMENT_COMPRESS_CMD" on the final combined files'),
+        make_option("-s", "--no-sync", action="store_false", dest="sync", default=True, help='Outputs the list of filenames with version info using the "STATIC_MANAGEMENT_VERSION_OUTPUT"'),
     )
     
     def handle(self, *args, **kwargs):
