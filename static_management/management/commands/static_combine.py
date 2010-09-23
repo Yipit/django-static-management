@@ -23,7 +23,7 @@ class Command(BaseCommand):
         self.files_created = []
         self.combine_js()
         self.combine_css()
-        if options['sync']:
+        if self.options['sync']:
             call_command(setting.STATIC_MANAGEMENT_SYNC_COMMAND)
         
     def combine_js(self):
