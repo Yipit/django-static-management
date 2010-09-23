@@ -1,1 +1,0 @@
-# static_mgmt middleware

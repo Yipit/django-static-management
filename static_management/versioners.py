@@ -7,7 +7,7 @@ class SHA1Sum(object):
     def __call__(self, filename):
         f = open(filename, mode='rb')
         try:
-            return hashlib.sha1(f.read()).hexdigest()[:8]
+            return hashlib.sha1(f.read()).hexdigest()[:16]
         finally:
             f.close()
 
@@ -15,7 +15,7 @@ class MD5Sum(object):
     def __call__(self, filename):
         f = open(filename, mode='rb')
         try:
-            return hashlib.md5(f.read()).hexdigest()[:8]
+            return hashlib.md5(f.read()).hexdigest()[:16]
         finally:
             f.close()
 

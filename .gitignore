@@ -1,2 +1,3 @@
 *.pyc
 *.tmproj
+django_static_management.egg-info

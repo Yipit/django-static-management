@@ -1,11 +1,32 @@
 import os
 import time
-from static_management import settings
 
 from django import template
-from static_management.lib import static_combine
-
 register = template.Library()
+
+from static_management import settings
+from static_management.lib import static_combine
+from static_management.models import FileVersion
+
+SUPPORTED_FILE_TYPES = ['css', 'js']
+FILE_VERSIONS = {}
+
+for inheritance_key in SUPPORTED_FILE_TYPES:
+    FILE_VERSIONS[inheritance_key] = {}
+    try:
+        file_keys = settings.STATIC_MANAGEMENT[inheritance_key]
+    except KeyError:
+        continue
+    for file_key in file_keys:
+        if settings.STATIC_MANAGEMENT_USE_VERSIONS:
+            try:
+                filename = FileVersion.objects.get(file_key=file_key).filename
+                FILE_VERSIONS[inheritance_key][file_key] = filename
+                continue
+            except FileVersion.DoesNotExist:
+                pass
+        
+        FILE_VERSIONS[inheritance_key][file_key] = file_key
 
 @register.simple_tag
 def static_combo_css(file_name, media=None):
@@ -50,16 +71,10 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key):
                 if os.path.exists(file_path):
                     # need to append a cachebust as per static_asset
                     to_output = output_format % os.path.join(settings.MEDIA_URL, file_name)
-                    if settings.STATIC_MANAGEMENT_CACHEBUST:
-                        to_output += "?cachebust=%s" % time.time()
                     output += to_output
                 else:
                     raise template.TemplateSyntaxError, "%s does not exist" % file_path
     else:
-        try:
-            parent_name = settings.STATIC_MANAGEMENT_VERSIONS[parent_name]
-        except (AttributeError, KeyError):
-            parent_name = parent_name
-        # return "combined" files
-        output = output_format % "%s" % os.path.join(settings.MEDIA_URL, parent_name)
+        filename = FILE_VERSIONS[inheritance_key][parent_name]
+        output = output_format % "%s" % os.path.join(settings.MEDIA_URL, filename)
     return output
