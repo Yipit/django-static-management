@@ -6,8 +6,6 @@ from optparse import OptionParser, make_option
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
-from django.conf import settings as django_settings
-
 from static_management import settings
 from static_management.utils import get_versioner
 from static_management.models import FileVersion
