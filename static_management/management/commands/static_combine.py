@@ -20,13 +20,13 @@ class Command(BaseCommand):
     
     def handle(self, *args, **kwargs):
         self.options = kwargs
-        self.files_created = []
         self.combine_js()
         self.combine_css()
         if self.options['sync']:
-            call_command(setting.STATIC_MANAGEMENT_SYNC_COMMAND)
+            call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND)
         
     def combine_js(self):
+        print "Combining js...."
         try:
             js_files = settings.STATIC_MANAGEMENT['js']
         except AttributeError:
@@ -34,9 +34,9 @@ class Command(BaseCommand):
             js_files = None
         if js_files:
             combine_files(js_files, self.options)
-            map(self.files_created.append, js_files)
     
     def combine_css(self):
+        print "Combining css...."
         try:
             css_files = settings.STATIC_MANAGEMENT['css']
         except AttributeError:
@@ -44,13 +44,12 @@ class Command(BaseCommand):
             css_files = None
         if css_files:
             combine_files(css_files, self.options)
-            for css_file in css_files:
-                self.files_created.append(css_file)
 
 def combine_files(files, options):
     for main_file in files:
         to_combine = recurse_files(main_file, files[main_file], files)
         to_combine_paths = [os.path.join(settings.MEDIA_ROOT, f_name) for f_name in to_combine if os.path.exists(os.path.join(settings.MEDIA_ROOT, f_name))]
+        print "Building %s" % main_file
         static_combine(main_file, to_combine_paths, compress=options['compress'])
 
 def recurse_files(name, files, top):
