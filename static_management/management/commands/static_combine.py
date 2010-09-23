@@ -4,6 +4,9 @@ import subprocess
 from optparse import OptionParser, make_option
 
 from django.core.management.base import BaseCommand, CommandError
+from django.core.management import call_command
+
+from django.conf import settings as django_settings
 
 from static_management import settings
 from static_management.utils import get_versioner
@@ -14,7 +17,7 @@ class Command(BaseCommand):
     
     option_list = BaseCommand.option_list + (
         make_option("-c", "--compress", action="store_true", dest="compress", default=False, help='Runs the compression script defined in "STATIC_MANAGEMENT_COMPRESS_CMD" on the final combined files'),
-        make_option("-o", "--output", action="store_true", dest="output", default=False, help='Outputs the list of filenames with version info using the "STATIC_MANAGEMENT_VERSION_OUTPUT"'),
+        make_option("-s", "--output", action="store_true", dest="sync", default=False, help='Outputs the list of filenames with version info using the "STATIC_MANAGEMENT_VERSION_OUTPUT"'),
     )
     
     def handle(self, *args, **kwargs):
@@ -22,7 +25,9 @@ class Command(BaseCommand):
         self.files_created = []
         self.combine_js()
         self.combine_css()
-    
+        if options['sync']:
+            call_command(setting.STATIC_MANAGEMENT_SYNC_COMMAND)
+        
     def combine_js(self):
         try:
             js_files = settings.STATIC_MANAGEMENT['js']
