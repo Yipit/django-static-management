@@ -16,7 +16,7 @@ STATIC_MANAGEMENT_LOGGING_LEVEL = getattr(settings, 'STATIC_MANAGEMENT_LOGGING_L
 if not STATIC_MANAGEMENT_LOGGER:
     logger = logging.getLogger('static_management')
     if len(logger.handlers) < 1:
-        logger.addHandler(StreamHandler())
+        logger.addHandler(loggingStreamHandler())
     if STATIC_MANAGEMENT_LOGGING_LEVEL:
         logger.setLevel(STATIC_MANAGEMENT_LOGGING_LEVEL)
     STATIC_MANAGEMENT_LOGGER = 'static_management'
