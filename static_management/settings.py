@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 
 STATIC_MANAGEMENT_COMPRESS_CMD = getattr(settings, 'STATIC_MANAGEMENT_COMPRESS_CMD', '')
@@ -7,6 +9,18 @@ STATIC_MANAGEMENT_VERSIONER = getattr(settings, 'STATIC_MANAGEMENT_VERSIONER','s
 STATIC_MANAGEMENT = getattr(settings, 'STATIC_MANAGEMENT',{})
 STATIC_MANAGEMENT_USE_VERSIONS = getattr(settings, 'STATIC_MANAGEMENT_USE_VERSIONS',True)
 STATIC_MANAGEMENT_SYNC_COMMAND = getattr(settings, 'STATIC_MANAGEMENT_SYNC_COMMAND', '')
+
+STATIC_MANAGEMENT_LOGGER = getattr(settings, 'STATIC_MANAGEMENT_LOGGER', '')
+STATIC_MANAGEMENT_LOGGING_LEVEL = getattr(settings, 'STATIC_MANAGEMENT_LOGGING_LEVEL', '')
+
+if not STATIC_MANAGEMENT_LOGGER:
+    logger = logging.getLogger('static_management')
+    if len(logger.handlers) < 1:
+        logger.addHandler(StreamHandler())
+    if STATIC_MANAGEMENT_LOGGING_LEVEL:
+        logger.setLevel(STATIC_MANAGEMENT_LOGGING_LEVEL)
+    STATIC_MANAGEMENT_LOGGER = 'static_management'
+
 MEDIA_URL = getattr(settings, 'MEDIA_URL')
 MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
 DEBUG = False

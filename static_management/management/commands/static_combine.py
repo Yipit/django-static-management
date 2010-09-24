@@ -10,6 +10,9 @@ from static_management import settings
 from static_management.utils import get_versioner
 from static_management.models import FileVersion
 
+import logging
+logger = logging.getLogger(settings.STATIC_MANAGEMENT_LOGGER)
+
 class Command(BaseCommand):
     """static management commands for static_combine argument"""
     
@@ -22,25 +25,25 @@ class Command(BaseCommand):
         self.options = kwargs
         self.combine_js()
         self.combine_css()
-        if self.options['sync']:
+        if self.options['sync'] and settings.STATIC_MANAGEMENT_SYNC_COMMAND:
             call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND)
         
     def combine_js(self):
-        print "Combining js...."
+        logger.info("Combining js....")
         try:
             js_files = settings.STATIC_MANAGEMENT['js']
         except AttributeError:
-            print "Static JS files not provided"
+            logger.warning("Static JS files not provided")
             js_files = None
         if js_files:
             combine_files(js_files, self.options)
     
     def combine_css(self):
-        print "Combining css...."
+        logger.info("Combining css....")
         try:
             css_files = settings.STATIC_MANAGEMENT['css']
         except AttributeError:
-            print "Static CSS files not provided."
+            logger.warning("Static CSS files not provided.")
             css_files = None
         if css_files:
             combine_files(css_files, self.options)
@@ -49,7 +52,7 @@ def combine_files(files, options):
     for main_file in files:
         to_combine = recurse_files(main_file, files[main_file], files)
         to_combine_paths = [os.path.join(settings.MEDIA_ROOT, f_name) for f_name in to_combine if os.path.exists(os.path.join(settings.MEDIA_ROOT, f_name))]
-        print "Building %s" % main_file
+        logging.info("Building %s" % main_file)
         static_combine(main_file, to_combine_paths, compress=options['compress'])
 
 def recurse_files(name, files, top):
@@ -91,10 +94,14 @@ def static_combine(end_file_key, to_combine, delimiter="\n/* Begin: %s */\n", co
     to_write = ''
     for static_file in to_combine:
         if os.path.isfile(static_file):
+            logger.debug('Reading %s' % static_file)
             if delimiter:
                 to_write += delimiter % os.path.split(static_file)[1]
             to_write += file(static_file).read()
+        else:
+            logger.warning('%s is not a file!' % static_file)
     if to_write:
+        logging.debug('Writing %s' % end_file)
         combo_file.write(to_write)
         combo_file.close()
         if compress:
@@ -116,7 +123,8 @@ def static_combine(end_file_key, to_combine, delimiter="\n/* Begin: %s */\n", co
             file_version.compressed = compress
             file_version.save()
             end_file = os.path.join(settings.MEDIA_ROOT, file_version.filename)
-        combo_file = open(end_file, 'w')
-        combo_file.write(to_write)
-        combo_file.close()
+            logging.debug('Writing %s' % end_file)
+            combo_file = open(end_file, 'w')
+            combo_file.write(to_write)
+            combo_file.close()
         
