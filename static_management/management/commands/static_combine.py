@@ -26,7 +26,10 @@ class Command(BaseCommand):
         self.combine_js()
         self.combine_css()
         if self.options['sync'] and settings.STATIC_MANAGEMENT_SYNC_COMMAND:
-            call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND)
+            if settings.STATIC_MANAGEMENT_SYNC_COMMAND_EXPIRES:
+                call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND,'expires')
+            else:
+                call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND)
         
     def combine_js(self):
         logger.info("Combining js....")
@@ -104,9 +107,11 @@ def static_combine(end_file_key, to_combine, delimiter="\n/* Begin: %s */\n", co
         logging.debug('Writing %s' % end_file)
         combo_file.write(to_write)
         combo_file.close()
-        if compress and settings.STATIC_MANAGEMENT_COMPRESS_CMD:
+        if compress:
             try:
                 command =  settings.STATIC_MANAGEMENT_COMPRESS_CMD % end_file
+            except AttributeError, error:
+                raise CommandError("STATIC_MANAGEMENT_COMPRESS_CMD not set")
             except TypeError, error:
                 raise CommandError("No string substitution provided for the input file to be passed to the argument ('cmd %s')")
             proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
