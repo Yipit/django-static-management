@@ -23,4 +23,4 @@ if not STATIC_MANAGEMENT_LOGGER:
 
 MEDIA_URL = getattr(settings, 'MEDIA_URL')
 MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
-DEBUG = False
+DEBUG = getattr(settings, 'DEBUG')

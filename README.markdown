@@ -6,20 +6,10 @@ This project is intended as an easy way to manage multiple static text assets (C
 Currently includes:
 -------------------
 
-* A template tag to echo collections of CSS files;
-* A combination function with optional delimter;
-* A sample Django project using the template tags;
-* JS as well as CSS template tags;
-* A Django management command to combine files (for building);
+* JS and CSS template tags -- one link to the concatenated file for production, links too all files when DEBUG = True for easy development;
+* A Django management command to combine files (with support for compression and syncing);
 * Support for command line minification/compression when building (YUI compressor, JSMin, Icy etc.).
 * Support for filename versioning (using SHA1 sums, file modification times, etc.).
-* Support for versioning other static assets (e.g. images, Flash files, etc.).
-
-Will (eventually) include:
--------------
-
-* Unit tests;
-* Sample web server configuration for Gzip, mod\_deflate etc. (since you really shouldn't be serving static assets via Django in production).
 
 Usage
 -----
@@ -73,11 +63,8 @@ Other files may inherit from `css/mymainfile.css` (for example, IE hack files) b
 
 In your templates, you use the `static_combo` and `static_asset` template tag libraries:
 
-    {% load static_combo static_asset %}
+    {% load static_combo %}
     {% static_combo_css "css/mymainfile.css" %}
-    ...
-    <img alt="Company logo" src="{% static_asset "img/logo.png" %}">
-    ...
     {% static_combo_js "js/myjsfile.js" %}
 
 Where `css/mymainfile.css` is the "combined" file name from your settings. In `DEBUG` mode, this will echo out all the files in order (for debugging purposes). In production mode, it will only echo the "combined" file name.
@@ -103,14 +90,6 @@ To use, simply define a dictionary that maps relative filenames to versioned fil
         'img/icon.png': 'http://cdn2.example.com/img/icon.31901927.png'
     }
 
-#### Media URL hostnames
-
-To provide the absolute URL for versioned files, define the `STATIC_MANAGEMENT_HOSTNAMES` setting to include a list of hostnames:
-
-    STATIC_MANAGEMENT_HOSTNAMES = [
-        'http://cdn1.example.com/',
-        'http://cdn2.example.com/'
-    ]
 
 #### Version class
 
@@ -126,17 +105,6 @@ The following pre-rolled versioners are included:
 
 Custom versioners are simple callables that take a single filename argument.
 
-#### Other static assets (non-JS, non-CSS)
-
-If the `STATIC_MANAGEMENT_ASSET_PATHS` value is set, the combiner will traverse the filesystem looking for files which match the `STATIC_MANAGEMENT_ASSET_PATTERN` regular expression, adding them to the `STATIC_MANAGEMENT_VERSIONS` setting.  For example:
-
-    STATIC_MANAGEMENT_ASSET_PATHS = [('static/swf/', False), ('static/img/', False)]
-    STATIC_MANAGEMENT_ASSET_PATTERN = '.*(\.(png|jpg|gif|swf))'
-
-`STATIC_MANAGEMENT_ASSET_PATHS` should include a list of pairs where the first element is the path and the second is a boolean value which specifies whether or not the path should be recursed.
-
-Any usage of the `static_combo_asset` template tag will produce the fully-qualified path for the asset.  After the versioning of static assets is complete, it will modify the combined CSS file(s) by replacing filenames with full versioned URIs.
-
 ### Management commands
 
 The following command will generate all the files as per your settings:
@@ -151,14 +119,6 @@ Passing an argument of `--compress` to the above command will run the compressio
     STATIC_MANAGEMENT_COMPRESS_CMD = 'java -jar /home/myuser/yuicompressor-2.4.2/build/yuicompressor-2.4.2.jar %s'
 
 where `%s` represents the path of the file to be compressed.
-
-#### Versioning
-
-The `--output` argument will generate a list of versioned filenames and output them using the method of your choice, as specified in: `settings.STATIC_MANAGEMENT_VERSION_WRITER`.  This should be the name of a callable object or class, which takes a dictionary of the structured defined above in `STATIC_MANAGEMENT_VERSIONS.
-
-Note: It is often useful to use this mechanism to write the list of files to a configuration file and read from the same file in `settings.py`.
-
-The `--write-version` argument will copy the relative filename (e.g. `js/main.js`) to the versioned filename (e.g. `js/main.123456.js`).
 
 Using this within a Django project
 ----------------------------------
