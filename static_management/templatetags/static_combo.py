@@ -5,7 +5,6 @@ from django import template
 register = template.Library()
 
 from static_management import settings
-from static_management.lib import static_combine
 from static_management.models import FileVersion
 
 SUPPORTED_FILE_TYPES = ['css', 'js']
