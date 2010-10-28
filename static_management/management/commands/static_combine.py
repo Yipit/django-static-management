@@ -26,10 +26,7 @@ class Command(BaseCommand):
         self.combine_js()
         self.combine_css()
         if self.options['sync'] and settings.STATIC_MANAGEMENT_SYNC_COMMAND:
-            if settings.STATIC_MANAGEMENT_SYNC_COMMAND_EXPIRES:
-                call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND,'expires')
-            else:
-                call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND)
+            call_command(settings.STATIC_MANAGEMENT_SYNC_COMMAND, **settings.STATIC_MANAGEMENT_SYNC_COMMAND_KWARGS)
         
     def combine_js(self):
         logger.info("Combining js....")
