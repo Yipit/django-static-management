@@ -1,5 +1,6 @@
 import os
 import subprocess
+import datetime
 
 from optparse import OptionParser, make_option
 
@@ -8,7 +9,7 @@ from django.core.management import call_command
 
 from static_management import settings
 from static_management.utils import get_versioner
-from static_management.models import FileVersion
+from static_management.models import FileVersion, FileModified
 
 import logging
 logger = logging.getLogger(settings.STATIC_MANAGEMENT_LOGGER)
@@ -50,10 +51,30 @@ class Command(BaseCommand):
 
 def combine_files(files, options):
     for main_file in files:
+        if not is_modified(files[main_file]):
+            logging.info("Skipping static_combine for files under %s since none of them have been modified", main_file)
+            continue
         to_combine = recurse_files(main_file, files[main_file], files)
         to_combine_paths = [os.path.join(settings.MEDIA_ROOT, f_name) for f_name in to_combine if os.path.exists(os.path.join(settings.MEDIA_ROOT, f_name))]
         logging.info("Building %s" % main_file)
         static_combine(main_file, to_combine_paths, compress=options['compress'])
+
+def is_modified(files):
+    is_modified = False
+    for the_file in files:
+        db_file, created = FileModified.objects.get_or_create(filename=the_file)
+        if created:
+            is_modified = True
+        else:
+            db_file_ts = db_file.last_modified
+            path_to_file = os.path.join(settings.MEDIA_ROOT, db_file.filename)
+            if os.path.isfile(path_to_file):
+                system_file_ts = datetime.datetime.fromtimestamp(os.path.getmtime(path_to_file))
+                if system_file_ts > db_file_ts:
+                    db_file.last_modified = system_file_ts
+                    db_file.save()
+                    is_modified = True
+    return is_modified
 
 def recurse_files(name, files, top):
     """

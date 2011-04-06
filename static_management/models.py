@@ -12,3 +12,8 @@ class FileVersion(models.Model):
     def filename(self):
         name, ext = os.path.splitext(self.file_key)
         return "%s.%s%s" % (name, self.version, ext)
+        
+class FileModified(models.Model):
+
+    filename = models.CharField(max_length=255, unique=True)
+    last_modified = models.DateTimeField(auto_now=True)
