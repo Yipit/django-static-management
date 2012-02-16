@@ -8,4 +8,5 @@ setup(
     author='Zach Smith',
     author_email='zmsmith27@gmail.com',
     url='http://github.com/Yipit/django-static-management/',
+    packages=find_packages()
 )
