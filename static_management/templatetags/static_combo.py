@@ -1,5 +1,6 @@
 import os
 import time
+import waffle
 
 from django import template
 register = template.Library()
@@ -27,10 +28,9 @@ for inheritance_key in SUPPORTED_FILE_TYPES:
         
         FILE_VERSIONS[inheritance_key][file_key] = file_key
 
-@register.simple_tag
-def static_combo_css(file_name, media=None):
+@register.simple_tag(takes_context=True)
+def static_combo_css(context, file_name, media=None):
     """combines files in settings
-    
     {% static_combo_css "css/main.css" %}"""
     # override the default if an override exists
     if settings.STATIC_MANAGEMENT_CSS_LINK:
@@ -40,14 +40,20 @@ def static_combo_css(file_name, media=None):
             link_format = '<link rel="stylesheet" type="text/css" href="%%s" media="%s">\n' % media
         else:
             link_format = '<link rel="stylesheet" type="text/css" href="%s">\n'
+    if waffle.switch_is_active('serve_gzipped'):
+        if 'gzip' in context['request'].META['HTTP_ACCEPT_ENCODING']:   
+            file_name+='.gz'
     output = _group_file_names_and_output(file_name, link_format, 'css')
     return output
 
-@register.simple_tag
-def static_combo_js(file_name):
+@register.simple_tag(takes_context=True)
+def static_combo_js(context, file_name):
     """combines files in settings
     
     {% static_combo_js "js/main.js" %}"""
+    if waffle.switch_is_active('serve_gzipped'):
+        if 'gzip' in context['request'].META['HTTP_ACCEPT_ENCODING']:   
+            file_name+='.gz'
     script_format = settings.STATIC_MANAGEMENT_SCRIPT_SRC
     output = _group_file_names_and_output(file_name, script_format, 'js')
     return output
