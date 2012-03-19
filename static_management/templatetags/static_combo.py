@@ -41,7 +41,7 @@ def static_combo_css(context, file_name, media=None):
         else:
             link_format = '<link rel="stylesheet" type="text/css" href="%s">\n'
     if waffle.switch_is_active('serve_gzipped'):
-        if 'gzip' in context['request'].META['HTTP_ACCEPT_ENCODING']:   
+        if 'gzip' in context['request'].META.get('HTTP_ACCEPT_ENCODING'):   
             gzip_filename = "%s.gz" % (file_name)
             return link_format % (os.path.join(settings.MEDIA_URL, gzip_filename))
     output = _group_file_names_and_output(file_name, link_format, 'css')
@@ -53,7 +53,7 @@ def static_combo_js(context, file_name):
     {% static_combo_js "js/main.js" %}"""
     script_format = settings.STATIC_MANAGEMENT_SCRIPT_SRC
     if waffle.switch_is_active('serve_gzipped'):
-        if 'gzip' in context['request'].META['HTTP_ACCEPT_ENCODING']:   
+        if 'gzip' in context['request'].META.get('HTTP_ACCEPT_ENCODING'):   
             gzip_filename = "%s.gz" % (file_name)
             return script_format % (os.path.join(settings.MEDIA_URL, gzip_filename))
     output = _group_file_names_and_output(file_name, script_format, 'js')
