@@ -40,11 +40,8 @@ def static_combo_css(context, file_name, media=None):
             link_format = '<link rel="stylesheet" type="text/css" href="%%s" media="%s">\n' % media
         else:
             link_format = '<link rel="stylesheet" type="text/css" href="%s">\n'
-    if waffle.switch_is_active('serve_gzipped'):
-        if 'gzip' in context['request'].META.get('HTTP_ACCEPT_ENCODING'," "):   
-            gzip_filename = "%s.gz" % (file_name)
-            return link_format % (os.path.join(settings.MEDIA_URL, gzip_filename))
-    output = _group_file_names_and_output(file_name, link_format, 'css')
+    gzipped = 'gzip' in context['request'].META.get('HTTP_ACCEPT_ENCODING', " ")
+    output = _group_file_names_and_output(file_name, link_format, 'css', gzipped)            
     return output
 
 @register.simple_tag(takes_context=True)
@@ -52,14 +49,11 @@ def static_combo_js(context, file_name):
     """combines files in settings
     {% static_combo_js "js/main.js" %}"""
     script_format = settings.STATIC_MANAGEMENT_SCRIPT_SRC
-    if waffle.switch_is_active('serve_gzipped'):
-        if 'gzip' in context['request'].META.get('HTTP_ACCEPT_ENCODING', " "):   
-            gzip_filename = "%s.gz" % (file_name)
-            return script_format % (os.path.join(settings.MEDIA_URL, gzip_filename))
-    output = _group_file_names_and_output(file_name, script_format, 'js')
+    gzipped = 'gzip' in context['request'].META.get('HTTP_ACCEPT_ENCODING', " ")
+    output = _group_file_names_and_output(file_name, script_format, 'js', gzipped)
     return output
 
-def _group_file_names_and_output(parent_name, output_format, inheritance_key):
+def _group_file_names_and_output(parent_name, output_format, inheritance_key, gzipped=False):
     """helper function to do most of the heavy lifting of the above template tags"""
     try:
         file_names = settings.STATIC_MANAGEMENT[inheritance_key][parent_name]
@@ -82,5 +76,7 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key):
                     raise template.TemplateSyntaxError, "%s does not exist" % file_path
     else:
         filename = FILE_VERSIONS[inheritance_key][parent_name]
-        output = output_format % "%s" % os.path.join(settings.MEDIA_URL, filename)
+        if waffle.switch_is_active('serve_gzipped') and gzipped:
+            filename = "%s.gz" % filename
+        output = output_format % os.path.join(settings.MEDIA_URL, filename)
     return output
