@@ -77,6 +77,6 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key, gz
     else:
         filename = FILE_VERSIONS[inheritance_key][parent_name]
         if waffle.switch_is_active('serve_gzipped') and gzipped:
-            filename = "%s.gz" % filename
+            filename = "%s.jgz" % filename # Old versions of Safari have issues with .gz, so now switching to .jgz
         output = output_format % os.path.join(settings.MEDIA_URL, filename)
     return output
