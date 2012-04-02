@@ -1,6 +1,5 @@
 import os
 import time
-import waffle
 
 from django import template
 register = template.Library()
