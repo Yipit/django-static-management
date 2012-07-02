@@ -23,5 +23,7 @@ if not STATIC_MANAGEMENT_LOGGER:
     STATIC_MANAGEMENT_LOGGER = 'static_management'
 
 MEDIA_URL = getattr(settings, 'MEDIA_URL')
+CSS_MEDIA_URL = getattr(settings, 'CSS_MEDIA_URL') or MEDIA_URL
+JS_MEDIA_URL = getattr(settings, 'JS_MEDIA_URL') or MEDIA_URL
 MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT')
 DEBUG = getattr(settings, 'DEBUG')
