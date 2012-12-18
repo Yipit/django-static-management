@@ -1,18 +1,25 @@
 import os
+from os.path import relpath
 import subprocess
 import datetime
+import re
 
-from optparse import OptionParser, make_option
+from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
 from static_management import settings
 from static_management.utils import get_versioner
-from static_management.models import FileVersion, FileModified
+from static_management.models import FileVersion
 
 import logging
 logger = logging.getLogger(settings.STATIC_MANAGEMENT_LOGGER)
+
+try:
+    CSS_ASSET_PATTERN = re.compile(settings.STATIC_MANAGEMENT_CSS_ASSET_PATTERN)
+except AttributeError:
+    CSS_ASSET_PATTERN = re.compile('(?P<url>url(\([\'"]?(?P<filename>[^)]+\.[a-z]{3,4})(?P<fragment>#\w+)?[\'"]?\)))')
 
 
 class Command(BaseCommand):
@@ -25,6 +32,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.options = kwargs
+        self.css_files = []
         self.combine_js()
         self.combine_css()
         if self.options['sync'] and settings.STATIC_MANAGEMENT_SYNC_COMMAND:
@@ -47,8 +55,33 @@ class Command(BaseCommand):
         except AttributeError:
             logger.warning("Static CSS files not provided.")
             css_files = None
-        if css_files:
-            combine_files(css_files, self.options)
+        combine_files(css_files, self.options)
+        for file in css_files:
+            self.css_files.append(file)
+
+
+def finditer_replace(reg, replace_function, text):
+    reg = re.compile(reg)
+    cursor_pos = 0
+    output = []
+    for match in reg.finditer(text):
+        output.append(text[cursor_pos:match.start(0)])
+        output.append(replace_function(match))
+        cursor_pos = match.end(0)
+    output.append(text[cursor_pos:])
+    return ''.join(output)
+
+
+def make_css_urls_absolute(filename, file_contents):
+
+    def abs_path(match):
+        grp = match.groupdict()
+        relative_filename = relpath(filename, settings.MEDIA_ROOT)
+        relative_dirname = os.path.dirname(relative_filename)
+        absolute_path = '/{}/{}{}'.format(relative_dirname, grp['filename'], grp.get('fragment') or '')
+        return 'url({})'.format(os.path.abspath(absolute_path))
+
+    return finditer_replace(CSS_ASSET_PATTERN, abs_path, file_contents)
 
 
 def combine_files(files, options):
@@ -117,7 +150,10 @@ def static_combine(end_file_key, to_combine, delimiter="\n/* Begin: %s */\n", co
             logger.debug('Reading %s' % static_file)
             if delimiter:
                 to_write += delimiter % os.path.split(static_file)[1]
-            to_write += file(static_file).read()
+
+            file_contents = file(static_file).read()
+            file_contents = make_css_urls_absolute(static_file, file_contents)
+            to_write += file_contents
         else:
             logger.warning('%s is not a file!' % static_file)
     if to_write:
