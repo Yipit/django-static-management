@@ -1,3 +1,4 @@
+import codecs
 import os
 from os.path import relpath
 import subprocess
@@ -135,7 +136,7 @@ def recurse_files(name, files, top):
     return combine_files
 
 
-def static_combine(end_file_key, to_combine, delimiter="\n/* Begin: %s */\n", compress=False):
+def static_combine(end_file_key, to_combine, delimiter=u"\n/* Begin: %s */\n", compress=False):
     """joins paths together to create a single file
 
     Usage: static_combine(my_ultimate_file, list_of_paths, [delimiter])
@@ -143,15 +144,15 @@ def static_combine(end_file_key, to_combine, delimiter="\n/* Begin: %s */\n", co
     delimiter is set to a Javascript and CSS safe comment to note where files
     start"""
     end_file = os.path.join(settings.MEDIA_ROOT, end_file_key)
-    combo_file = open(end_file, 'w')
-    to_write = ''
+    combo_file = codecs.open(end_file, "w", "utf-8")
+    to_write = u''
     for static_file in to_combine:
         if os.path.isfile(static_file):
             logger.debug('Reading %s' % static_file)
             if delimiter:
                 to_write += delimiter % os.path.split(static_file)[1]
 
-            file_contents = file(static_file).read()
+            file_contents = codecs.open(static_file, "r", "utf-8").read()
             file_contents = make_css_urls_absolute(static_file, file_contents)
             to_write += file_contents
         else:
