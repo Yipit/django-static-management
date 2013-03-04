@@ -25,6 +25,6 @@ if not STATIC_MANAGEMENT_LOGGER:
 MEDIA_URL = getattr(settings, 'MEDIA_URL')
 CSS_MEDIA_URL = getattr(settings, 'CSS_MEDIA_URL') or MEDIA_URL
 JS_MEDIA_URL = getattr(settings, 'JS_MEDIA_URL') or MEDIA_URL
-MEDIA_ROOT = getattr(settings, 'STATIC_MANAGEMENT_ROOT') or getattr(settings, 'MEDIA_ROOT')
+STATIC_MANAGEMENT_ROOT = getattr(settings, 'STATIC_MANAGEMENT_ROOT', getattr(settings, 'MEDIA_ROOT'))
 DEBUG = getattr(settings, 'DEBUG')
 SERVE_COMPRESSED = getattr(settings, 'STATIC_MANAGEMENT_SERVE_COMPRESSED', (not DEBUG))
