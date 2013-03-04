@@ -3,13 +3,13 @@ Static Management
 
 ## CHANGES in our fork:
 
-#### Base path for the relative static files
+### Base path for the relative static files
 
 All the files are relative to `settings.STATIC_MANAGEMENT_ROOT` by
-default, but if that setting is not defined, then it will fallback to
+default, but [if that setting is not defined, then it will fallback](https://github.com/Yipit/django-static-management/blob/f4a2151642a349e2d793a4fbe3b12da2866c76cb/static_management/settings.py#L28) to
 `settings.MEDIA_ROOT`.
 
-##### Example:
+#### Example:
 
 In your `settings.py` file.
 
@@ -19,7 +19,15 @@ from os.path import dirname, abspath, join
 STATIC_MANAGEMENT_ROOT = join(abspath(dirname(__file__)), "apps", "yipit-static-media", "static")
 ```
 
-This project is intended as an easy way to manage multiple static text assets (CSS and Javascript) in a Django projects.
+### CSS regular expression pattern
+
+In our fork we
+[**ALWAYS**](https://github.com/Yipit/django-static-management/commit/6719bee2ad971016153347c2e984975d1afc25f8)
+use the dajngo setting `STATIC_MANAGEMENT_CSS_ASSET_PATTERN` to find
+the url, filename and fragment.
+
+This project is intended as an easy way to manage multiple static text
+assets (CSS and Javascript) in a Django projects.
 
 Currently includes:
 -------------------
