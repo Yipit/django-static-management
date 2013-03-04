@@ -64,7 +64,7 @@ def _group_file_names_and_output(parent_name, output_format, inheritance_key, gz
     if not settings.SERVE_COMPRESSED:
         # we need to echo out each one
         for file_name in file_names:
-            file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+            file_path = os.path.join(settings.STATIC_MANAGEMENT_ROOT, file_name)
             if file_name in settings.STATIC_MANAGEMENT[inheritance_key]:
                 output += _group_file_names_and_output(file_name, output_format, inheritance_key)
             else:

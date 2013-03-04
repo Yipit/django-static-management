@@ -77,7 +77,7 @@ def make_css_urls_absolute(filename, file_contents):
 
     def abs_path(match):
         grp = match.groupdict()
-        relative_filename = relpath(filename, settings.MEDIA_ROOT)
+        relative_filename = relpath(filename, settings.STATIC_MANAGEMENT_ROOT)
         relative_dirname = os.path.dirname(relative_filename)
         absolute_path = '/{}/{}{}'.format(relative_dirname, grp['filename'], grp.get('fragment') or '')
         return 'url({})'.format(os.path.abspath(absolute_path))
@@ -92,7 +92,7 @@ def combine_files(files, options):
             logging.info("Skipping static_combine for files under %s since none of them have been modified", main_file)
             continue
         to_combine = recurse_files(main_file, contained_files, files)
-        to_combine_paths = [os.path.join(settings.MEDIA_ROOT, f_name) for f_name in to_combine if os.path.exists(os.path.join(settings.MEDIA_ROOT, f_name))]
+        to_combine_paths = [os.path.join(settings.STATIC_MANAGEMENT_ROOT, f_name) for f_name in to_combine if os.path.exists(os.path.join(settings.STATIC_MANAGEMENT_ROOT, f_name))]
         logging.info("Building %s" % main_file)
         static_combine(main_file, to_combine_paths, compress=options['compress'])
 
@@ -104,7 +104,7 @@ def is_modified(file_key, files):
 
     db_file_ts = file_version.datetime
     for the_file in files:
-        path_to_file = os.path.join(settings.MEDIA_ROOT, the_file)
+        path_to_file = os.path.join(settings.STATIC_MANAGEMENT_ROOT, the_file)
         if os.path.isfile(path_to_file):
             system_file_ts = datetime.datetime.fromtimestamp(os.path.getmtime(path_to_file))
             if system_file_ts > db_file_ts:
@@ -143,7 +143,7 @@ def static_combine(end_file_key, to_combine, delimiter=u"\n/* Begin: %s */\n", c
 
     delimiter is set to a Javascript and CSS safe comment to note where files
     start"""
-    end_file = os.path.join(settings.MEDIA_ROOT, end_file_key)
+    end_file = os.path.join(settings.STATIC_MANAGEMENT_ROOT, end_file_key)
     combo_file = codecs.open(end_file, "w", "utf-8")
     to_write = u''
     for static_file in to_combine:
@@ -179,7 +179,7 @@ def static_combine(end_file_key, to_combine, delimiter=u"\n/* Begin: %s */\n", c
             file_version.version = version
             file_version.compressed = compress
             file_version.save()
-            end_file = os.path.join(settings.MEDIA_ROOT, file_version.filename)
+            end_file = os.path.join(settings.STATIC_MANAGEMENT_ROOT, file_version.filename)
             logging.debug('Writing %s' % end_file)
             combo_file = open(end_file, 'w')
             combo_file.write(to_write)
