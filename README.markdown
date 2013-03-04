@@ -29,6 +29,18 @@ the url, filename and fragment.
 This project is intended as an easy way to manage multiple static text
 assets (CSS and Javascript) in a Django projects.
 
+### the "**--sync**" option
+
+We changed the `python manage.py static_combine` command to accept the
+`--sync` option that will use `call_command` to call the command name
+set in the setting `STATIC_MANAGEMENT_SYNC_COMMAND`.
+
+### `static_combine` default options
+
+We changed the default arguments of the `static_combine` command.
+[It sets both `--compress` and `--sync` by default](https://github.com/Yipit/django-static-management/commit/0654c1130487c8e8449c2d1e3a1d28bba77685bb)
+
+
 Currently includes:
 -------------------
 
